@@ -69,12 +69,15 @@ func readConfig(path string) ([]byte, error) {
 }
 
 func typeVersion(s string) (t string, v string, err error) {
+	if s == "" {
+		err = fmt.Errorf("No type given")
+
+		return
+	}
+
 	split := strings.Split(s, ".")
 
 	switch len(split) {
-	case 0:
-		err = fmt.Errorf("No type given")
-
 	case 1:
 		t = split[0]
 		v = latestVersion
