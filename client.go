@@ -40,36 +40,12 @@ func QueueJob(hb HostBinary, job Job) (err error) {
 	}
 
 	body := bytes.NewBuffer(b)
+	queuedResp := new(queueResponse)
 
-	req, err := http.NewRequest("POST", setURL(hb.Host, "/queue"), body)
-	if err != nil {
-		return
-	}
+	respBody, err := doRequest(setURL(hb.Host, "/queue"), body, queuedResp)
 
-	resp, err := client.Do(req)
-	if err != nil {
-		return
-	}
-
-	defer resp.Body.Close()
-
-	respBody, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return
-	}
-
-	if resp.StatusCode != http.StatusCreated {
-		return fmt.Errorf("Received %q from %s, %s", resp.Status, hb.Host, string(respBody))
-	}
-
-	uploadResp := new(queueResponse)
-	err = json.Unmarshal(respBody, uploadResp)
-	if err != nil {
-		return
-	}
-
-	if !uploadResp.Queued {
-		err = fmt.Errorf("Could not queue job, received: %+v", respBody)
+	if !queuedResp.Queued {
+		err = fmt.Errorf("Could not queue job, received: %+v", string(respBody))
 	}
 
 	return
@@ -123,6 +99,35 @@ func UploadSchedule(f, addr string) (hb HostBinary, err error) {
 	uploadResp := new(uploadResponse)
 	err = json.Unmarshal(body, uploadResp)
 	hb.Binary = uploadResp.Binary
+
+	return
+}
+
+func doRequest(url string, b io.Reader, r interface{}) (respBody []byte, err error) {
+	req, err := http.NewRequest("POST", url, b)
+	if err != nil {
+		return
+	}
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
+
+	defer resp.Body.Close()
+
+	respBody, err = ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return
+	}
+
+	if resp.StatusCode != http.StatusCreated {
+		err = fmt.Errorf("Received %q from %s, %s", resp.Status, url, string(respBody))
+
+		return
+	}
+
+	err = json.Unmarshal(respBody, r)
 
 	return
 }

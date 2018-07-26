@@ -1,0 +1,6 @@
+type = "job"
+
+[schema]
+name = "test_job"
+users = 1
+duration = 10

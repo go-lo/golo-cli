@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
+	"os"
 )
 
 type HostBinary struct {
@@ -27,4 +29,21 @@ type LookerUpper interface {
 
 type oauthClient interface {
 	Do(*http.Request) (*http.Response, error)
+}
+
+func SetLookerUpper(provider string) (lu LookerUpper, err error) {
+	switch provider {
+	case "localhost":
+		lu = NewLocalhost()
+
+	case "digitalocean":
+		t := os.Getenv("DO_TOKEN")
+
+		lu, err = NewDigitalOcean(t)
+
+	default:
+		err = fmt.Errorf("No provider %q configured", *cloudProvider)
+	}
+
+	return
 }
