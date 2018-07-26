@@ -13,7 +13,7 @@ type HostBinary struct {
 type HostBinaryMap map[string]HostBinary
 
 func (hbm *HostBinaryMap) AddHost(host string) {
-	(*hbm)[host] = HostBinary{}
+	(*hbm)[host] = HostBinary{Host: host}
 }
 
 func (hbm *HostBinaryMap) Add(hb HostBinary) {
