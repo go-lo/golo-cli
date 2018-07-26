@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"net/http"
 	"os"
 )
 
@@ -25,10 +24,6 @@ func (hbm *HostBinaryMap) Add(hb HostBinary) {
 
 type LookerUpper interface {
 	Addresses(string) HostBinaryMap
-}
-
-type oauthClient interface {
-	Do(*http.Request) (*http.Response, error)
 }
 
 func SetLookerUpper(provider string) (lu LookerUpper, err error) {

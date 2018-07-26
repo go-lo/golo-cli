@@ -16,6 +16,10 @@ var (
 	client oauthClient
 )
 
+type oauthClient interface {
+	Do(*http.Request) (*http.Response, error)
+}
+
 type queueResponse struct {
 	Queued bool `json:"queued"`
 }
