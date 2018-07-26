@@ -11,18 +11,18 @@ type Job struct {
 	Binary   string `json:"binary"`
 }
 
-func UploadAndQueue(j *Job, hbm HostBinaryMap, schedule string) (err error) {
+func (j *Job) UploadAndQueue(hbm HostBinaryMap, schedule string) (err error) {
 	hostBinaries := make(chan HostBinary, len(hbm))
 	errors := make(chan error, len(hbm))
 
 	log.Println("Updating agents")
-	err = UploadJobs(hbm, schedule, hostBinaries, errors)
+	err = j.Upload(hbm, schedule, hostBinaries, errors)
 	if err != nil {
 		return
 	}
 
 	log.Println("Queueing job")
-	err = QueueJobs(j, hostBinaries, errors, len(hbm))
+	err = j.Queue(hostBinaries, errors, len(hbm))
 	if err != nil {
 		return
 	}
@@ -30,7 +30,7 @@ func UploadAndQueue(j *Job, hbm HostBinaryMap, schedule string) (err error) {
 	return
 }
 
-func QueueJobs(j *Job, h chan HostBinary, errors chan error, size int) (err error) {
+func (j *Job) Queue(h chan HostBinary, errors chan error, size int) (err error) {
 	for i := 0; i < size; i++ {
 		hb := <-h
 
@@ -49,7 +49,7 @@ func QueueJobs(j *Job, h chan HostBinary, errors chan error, size int) (err erro
 	return
 }
 
-func UploadJobs(hbm HostBinaryMap, schedule string, h chan HostBinary, errors chan error) (err error) {
+func (j *Job) Upload(hbm HostBinaryMap, schedule string, h chan HostBinary, errors chan error) (err error) {
 	for addr, _ := range hbm {
 		go func(a string) {
 			a = a

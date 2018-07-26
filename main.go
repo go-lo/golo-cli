@@ -44,7 +44,7 @@ func main() {
 
 	switch i.(type) {
 	case *Job:
-		err = UploadAndQueue(i.(*Job), hbm, *schedule)
+		err = i.(*Job).UploadAndQueue(hbm, *schedule)
 
 	default:
 		err = fmt.Errorf("No handler for %T", i)
