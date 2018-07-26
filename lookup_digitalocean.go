@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/digitalocean/godo"
 	"golang.org/x/oauth2"
@@ -24,6 +25,12 @@ type DigitalOcean struct {
 }
 
 func NewDigitalOcean(token string) (d DigitalOcean, err error) {
+	if token == "" {
+		err = fmt.Errorf("Missing digitalocean token- have you set $DO_TOKEN?")
+
+		return
+	}
+
 	t := &doTokenSource{
 		AccessToken: token,
 	}
