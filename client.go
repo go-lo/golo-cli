@@ -16,13 +16,6 @@ var (
 	client oauthClient
 )
 
-type Job struct {
-	Name     string `json:"name",yaml:"name"`
-	Users    int    `json:"users",yaml:"users"`
-	Duration int64  `json:"duration",yaml:"duration",`
-	Binary   string `json:"binary"`
-}
-
 type queueResponse struct {
 	Queued bool `json:"queued"`
 }

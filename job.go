@@ -4,6 +4,13 @@ import (
 	"log"
 )
 
+type Job struct {
+	Name     string `json:"name",yaml:"name"`
+	Users    int    `json:"users",yaml:"users"`
+	Duration int64  `json:"duration",yaml:"duration",`
+	Binary   string `json:"binary"`
+}
+
 func UploadAndQueue(j *Job, hbm HostBinaryMap, schedule string) (err error) {
 	hostBinaries := make(chan HostBinary, len(hbm))
 	errors := make(chan error, len(hbm))
