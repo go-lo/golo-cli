@@ -62,3 +62,18 @@ func TestDigitalOcean_Addresses(t *testing.T) {
 		})
 	}
 }
+
+func TestDTS(t *testing.T) {
+	dts := doTokenSource{
+		AccessToken: "a-token",
+	}
+
+	tok, err := dts.Token()
+	if err != nil {
+		t.Errorf("unexpected error %+v", err)
+	}
+
+	if tok.AccessToken != dts.AccessToken {
+		t.Errorf("oauth token value should equal %q, actually equals %q", dts.AccessToken, tok.AccessToken)
+	}
+}
