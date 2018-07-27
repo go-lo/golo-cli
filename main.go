@@ -45,6 +45,11 @@ func realmain(f, p, t, s string) (err error) {
 	log.Printf("Finding %s agents with tag %q", p, t)
 
 	hbm = lu.Addresses(t)
+	if len(hbm) == 0 {
+		err = fmt.Errorf("No agents found")
+
+		return
+	}
 
 	log.Printf("Found %d agents", len(hbm))
 
