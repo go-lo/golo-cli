@@ -49,8 +49,10 @@ func TestReadInput(t *testing.T) {
 	}{
 		{"File exists, is valid", "testdata/job.toml", "*main.Job", false},
 		{"Missing file", "testdata/nonsuch", "", true},
-		{"File exists, is invalid", "testdata/invalid.toml", "", true},
+		{"File exists, is invalid config", "testdata/invalid-config.toml", "", true},
+		{"File exists, is invalid toml", "testdata/invalid-toml.toml", "", true},
 		{"File exists, valid type, wrong version", "testdata/job-wrong-version.toml", "", true},
+		{"File exists, missing type/version", "testdata/job-no-type.toml", "", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			i, err := ReadInput(test.path)
