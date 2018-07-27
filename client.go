@@ -29,6 +29,12 @@ type uploadResponse struct {
 }
 
 func QueueJob(hb HostBinary, job Job) (err error) {
+	if hb.Host == "" {
+		err = fmt.Errorf("Missing hostname")
+
+		return
+	}
+
 	job.Binary = hb.Binary
 
 	b, err := json.Marshal(job)
@@ -52,6 +58,12 @@ func QueueJob(hb HostBinary, job Job) (err error) {
 }
 
 func UploadSchedule(f, addr string) (hb HostBinary, err error) {
+	if addr == "" {
+		err = fmt.Errorf("Missing hostname")
+
+		return
+	}
+
 	hb.Host = addr
 
 	r, err := os.Open(f)
