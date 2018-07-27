@@ -9,12 +9,13 @@ import (
 )
 
 type passingClient struct {
-	body string
+	status int
+	body   string
 }
 
 func (c passingClient) Do(_ *http.Request) (resp *http.Response, err error) {
 	r := bytes.NewBufferString(c.body)
-	resp = &http.Response{StatusCode: 201, Status: "ok", Body: ioutil.NopCloser(r)}
+	resp = &http.Response{StatusCode: c.status, Status: "ok", Body: ioutil.NopCloser(r)}
 
 	return
 }
@@ -28,6 +29,25 @@ func (c failingClient) Do(_ *http.Request) (resp *http.Response, err error) {
 	return
 }
 
+type conditionalClient struct {
+	body    string
+	errorOn string
+}
+
+func (c conditionalClient) Do(req *http.Request) (resp *http.Response, err error) {
+	b := bytes.NewBufferString(c.body)
+	s := 200
+
+	if req.URL.Path == c.errorOn {
+		b = bytes.NewBufferString("an error")
+		s = 500
+	}
+
+	resp = &http.Response{StatusCode: s, Status: "", Body: ioutil.NopCloser(b)}
+
+	return
+}
+
 func TestQueueJob(t *testing.T) {
 	for _, test := range []struct {
 		name        string
@@ -36,8 +56,8 @@ func TestQueueJob(t *testing.T) {
 		j           Job
 		expectError bool
 	}{
-		{"happy path", passingClient{`{"queued": true}`}, HostBinary{"example.com", "123abc"}, Job{}, false},
-		{"error message from agent", passingClient{`Some agent error :(`}, HostBinary{"example.com", "123abc"}, Job{}, true},
+		{"happy path", passingClient{201, `{"queued": true}`}, HostBinary{"example.com", "123abc"}, Job{}, false},
+		{"error message from agent", passingClient{201, `Some agent error :(`}, HostBinary{"example.com", "123abc"}, Job{}, true},
 		{"error message and status from agent", failingClient{}, HostBinary{"example.com", "123abc"}, Job{}, true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
@@ -64,9 +84,9 @@ func TestUploadSchedule(t *testing.T) {
 		expect      HostBinary
 		expectError bool
 	}{
-		{"happy path", passingClient{`{"binary": "abc123"}`}, "testdata/dummy-schedule", "example.com", HostBinary{"example.com", "abc123"}, false},
-		{"error message from client", passingClient{`uh-oh :(`}, "testdata/dummy-schedule", "example.com", HostBinary{Host: "example.com"}, true},
-		{"non-existent file", passingClient{`{"binary": "abc123"}`}, "testdata/nonsuch", "example.com", HostBinary{Host: "example.com"}, true},
+		{"happy path", passingClient{200, `{"binary": "abc123"}`}, "testdata/dummy-schedule", "example.com", HostBinary{"example.com", "abc123"}, false},
+		{"error message from client", passingClient{201, `uh-oh :(`}, "testdata/dummy-schedule", "example.com", HostBinary{Host: "example.com"}, true},
+		{"non-existent file", passingClient{201, `{"binary": "abc123"}`}, "testdata/nonsuch", "example.com", HostBinary{Host: "example.com"}, true},
 		{"error from agent", failingClient{}, "testdata/dummy-schedule", "example.com", HostBinary{Host: "example.com"}, true},
 	} {
 		t.Run(test.name, func(t *testing.T) {

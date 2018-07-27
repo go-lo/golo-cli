@@ -8,14 +8,17 @@ func TestUploadAndQueue(t *testing.T) {
 	for _, test := range []struct {
 		name        string
 		job         Job
+		client      oauthClient
 		hbm         HostBinaryMap
 		schedule    string
 		expectError bool
 	}{
-		{"happy path", Job{}, HostBinaryMap{"example.com": HostBinary{"example.com", "abc123"}}, "testdata/dummy-schedule", false},
+		{"happy path", Job{}, passingClient{200, `{"queued": true, "binary": "abc123"}`}, HostBinaryMap{"example.com": HostBinary{"example.com", "abc123"}}, "testdata/dummy-schedule", false},
+		{"error uploading schedule", Job{}, conditionalClient{`{"queued": true, "binary": "abc123"}`, "/upload"}, HostBinaryMap{"example.com": HostBinary{"example.com", "abc123"}}, "testdata/dummy-schedule", true},
+		{"error queueing schedule", Job{}, conditionalClient{`{"queued": true, "binary": "abc123"}`, "/queue"}, HostBinaryMap{"example.com": HostBinary{"example.com", "abc123"}}, "testdata/dummy-schedule", true},
 	} {
 		t.Run(test.name, func(t *testing.T) {
-			client = passingClient{`{"queued": true, "binary": "abc123"}`}
+			client = test.client
 
 			err := test.job.UploadAndQueue(test.hbm, test.schedule)
 
