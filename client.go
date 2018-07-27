@@ -40,6 +40,9 @@ func QueueJob(hb HostBinary, job Job) (err error) {
 	queuedResp := new(queueResponse)
 
 	respBody, err := doRequest(setURL(hb.Host, "/queue"), body, queuedResp)
+	if err != nil {
+		return
+	}
 
 	if !queuedResp.Queued {
 		err = fmt.Errorf("Could not queue job, received: %+v", string(respBody))
@@ -120,7 +123,7 @@ func doRequest(url string, b io.Reader, r interface{}) (respBody []byte, err err
 		return
 	}
 
-	if resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusCreated && resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("Received %q from %s, %s", resp.Status, url, string(respBody))
 
 		return
