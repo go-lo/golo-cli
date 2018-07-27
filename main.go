@@ -21,36 +21,40 @@ var (
 )
 
 func main() {
-	var err error
 	flag.Parse()
-
-	i, err := ReadInput(*file)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	lu, err = SetLookerUpper(*cloudProvider)
-	if err != nil {
-		log.Fatal(err)
-	}
 
 	client = &http.Client{}
 
-	log.Printf("Finding %s agents with tag %q", *cloudProvider, *agentTag)
+	err := realmain(*file, *cloudProvider, *agentTag, *schedule)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
 
-	hbm = lu.Addresses(*agentTag)
+func realmain(f, p, t, s string) (err error) {
+	i, err := ReadInput(f)
+	if err != nil {
+		return
+	}
+
+	lu, err = SetLookerUpper(p)
+	if err != nil {
+		return
+	}
+
+	log.Printf("Finding %s agents with tag %q", p, t)
+
+	hbm = lu.Addresses(t)
 
 	log.Printf("Found %d agents", len(hbm))
 
 	switch i.(type) {
 	case *Job:
-		err = i.(*Job).UploadAndQueue(hbm, *schedule)
+		err = i.(*Job).UploadAndQueue(hbm, s)
 
 	default:
 		err = fmt.Errorf("No handler for %T", i)
 	}
 
-	if err != nil {
-		log.Fatal(err)
-	}
+	return
 }
