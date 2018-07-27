@@ -86,6 +86,8 @@ func UploadSchedule(f, addr string) (hb HostBinary, err error) {
 
 	if resp.StatusCode != http.StatusOK {
 		err = fmt.Errorf("bad status: %s", resp.Status)
+
+		return
 	}
 
 	body, err := ioutil.ReadAll(resp.Body)
