@@ -20,8 +20,12 @@ func (dts *doTokenSource) Token() (t *oauth2.Token, err error) {
 	return
 }
 
+type dropletLookupService interface {
+	ListByTag(context.Context, string, *godo.ListOptions) ([]godo.Droplet, *godo.Response, error)
+}
+
 type DigitalOcean struct {
-	client *godo.Client
+	lookupService dropletLookupService
 }
 
 func NewDigitalOcean(token string) (d DigitalOcean, err error) {
@@ -35,13 +39,13 @@ func NewDigitalOcean(token string) (d DigitalOcean, err error) {
 		AccessToken: token,
 	}
 
-	d.client = godo.NewClient(oauth2.NewClient(context.Background(), t))
+	d.lookupService = godo.NewClient(oauth2.NewClient(context.Background(), t)).Droplets
 
 	return
 }
 
 func (do DigitalOcean) Addresses(tag string) (a HostBinaryMap) {
-	droplets, _, _ := do.client.Droplets.ListByTag(context.TODO(), tag, nil)
+	droplets, _, _ := do.lookupService.ListByTag(context.TODO(), tag, nil)
 
 	a = make(HostBinaryMap)
 

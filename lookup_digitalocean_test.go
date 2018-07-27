@@ -1,149 +1,57 @@
 package main
 
 import (
-	"bytes"
-	"io/ioutil"
-	"net/http"
+	"context"
 	"reflect"
 	"testing"
 
 	"github.com/digitalocean/godo"
 )
 
-var (
-	// https://developers.digitalocean.com/documentation/v2/#list-all-droplets
-	dummyDropletsResponse = `
-{
-  "droplets": [
-    {
-      "id": 3164444,
-      "name": "example.com",
-      "memory": 1024,
-      "vcpus": 1,
-      "disk": 25,
-      "locked": false,
-      "status": "active",
-      "kernel": {
-        "id": 2233,
-        "name": "Ubuntu 14.04 x64 vmlinuz-3.13.0-37-generic",
-        "version": "3.13.0-37-generic"
-      },
-      "created_at": "2014-11-14T16:29:21Z",
-      "features": [
-        "backups",
-        "ipv6",
-        "virtio"
-      ],
-      "backup_ids": [
-        7938002
-      ],
-      "snapshot_ids": [
-
-      ],
-      "image": {
-        "id": 6918990,
-        "name": "14.04 x64",
-        "distribution": "Ubuntu",
-        "slug": "ubuntu-16-04-x64",
-        "public": true,
-        "regions": [
-          "nyc1",
-          "ams1",
-          "sfo1",
-          "nyc2",
-          "ams2",
-          "sgp1",
-          "lon1",
-          "nyc3",
-          "ams3",
-          "nyc3"
-        ],
-        "created_at": "2014-10-17T20:24:33Z",
-        "type": "snapshot",
-        "min_disk_size": 20,
-        "size_gigabytes": 2.34
-      },
-      "volume_ids": [
-
-      ],
-      "size": {
-      },
-      "size_slug": "s-1vcpu-1gb",
-      "networks": {
-        "v4": [
-          {
-            "ip_address": "104.236.32.182",
-            "netmask": "255.255.192.0",
-            "gateway": "104.236.0.1",
-            "type": "public"
-          }
-        ],
-        "v6": [
-          {
-            "ip_address": "2604:A880:0800:0010:0000:0000:02DD:4001",
-            "netmask": 64,
-            "gateway": "2604:A880:0800:0010:0000:0000:0000:0001",
-            "type": "public"
-          }
-        ]
-      },
-      "region": {
-        "name": "New York 3",
-        "slug": "nyc3",
-        "sizes": [
-
-        ],
-        "features": [
-          "virtio",
-          "private_networking",
-          "backups",
-          "ipv6",
-          "metadata"
-        ],
-        "available": null
-      },
-      "tags": [
-
-      ]
-    }
-  ],
-  "links": {
-    "pages": {
-      "last": "https://api.digitalocean.com/v2/droplets?page=3&per_page=1",
-      "next": "https://api.digitalocean.com/v2/droplets?page=2&per_page=1"
-    }
-  },
-  "meta": {
-    "total": 3
-  }
-}
-`
-)
-
-type dummyDigitaloceanClient struct {
-	status int
+type dummyDigitaloceanDropletService struct {
+	ipv4 bool
+	ipv6 bool
 }
 
-func (c dummyDigitaloceanClient) Do(_ *http.Request) (resp *http.Response, err error) {
-	r := bytes.NewBufferString(dummyDropletsResponse)
-	resp = &http.Response{StatusCode: c.status, Status: "", Body: ioutil.NopCloser(r)}
+func (c dummyDigitaloceanDropletService) ListByTag(_ context.Context, _ string, _ *godo.ListOptions) (d []godo.Droplet, r *godo.Response, err error) {
+	droplet := godo.Droplet{}
+
+	if c.ipv4 || c.ipv6 {
+		droplet.Networks = &godo.Networks{}
+	}
+
+	if c.ipv4 {
+		droplet.Networks.V4 = []godo.NetworkV4{
+			{IPAddress: "203.0.113.1"},
+		}
+	}
+
+	if c.ipv6 {
+		droplet.Networks.V6 = []godo.NetworkV6{
+			{IPAddress: "2001:db8::"},
+		}
+	}
+
+	d = append(d, droplet)
 
 	return
 }
 
 func TestDigitalOcean_Addresses(t *testing.T) {
 	for _, test := range []struct {
-		name   string
-		client oauthClient
-		tag    string
-		expect HostBinaryMap
+		name          string
+		lookupService dummyDigitaloceanDropletService
+		tag           string
+		expect        HostBinaryMap
 	}{
-		{"happy path", dummyDigitaloceanClient{200}, "agentz", HostBinaryMap{"2604:A880:0800:0010:0000:0000:02DD:4001": HostBinary{"2604:A880:0800:0010:0000:0000:02DD:4001", ""}}},
-		{"missing tag", dummyDigitaloceanClient{200}, "", HostBinaryMap{}},
+		{"Hosts with ipv6 addresses only", dummyDigitaloceanDropletService{ipv6: true}, "agentz", HostBinaryMap{"2001:db8::": HostBinary{"2001:db8::", ""}}},
+		{"Hosts with ipv4 addresses only", dummyDigitaloceanDropletService{ipv4: true}, "agentz", HostBinaryMap{"203.0.113.1": HostBinary{"203.0.113.1", ""}}},
+		{"Hosts with both types", dummyDigitaloceanDropletService{ipv4: true, ipv6: true}, "agentz", HostBinaryMap{"2001:db8::": HostBinary{"2001:db8::", ""}}},
+		{"Hosts with no addresses", dummyDigitaloceanDropletService{}, "agentz", HostBinaryMap{}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			d := DigitalOcean{
-				client: godo.NewClient(test.client.(*http.Client)),
+				lookupService: test.lookupService,
 			}
 
 			hbm := d.Addresses(test.tag)
