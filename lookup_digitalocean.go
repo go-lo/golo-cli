@@ -24,10 +24,15 @@ type dropletLookupService interface {
 	ListByTag(context.Context, string, *godo.ListOptions) ([]godo.Droplet, *godo.Response, error)
 }
 
+// DigitalOcean is a LookerUpper which finds digital ocean
+// droplets which provide golo agents
 type DigitalOcean struct {
 	lookupService dropletLookupService
 }
 
+// NewDigitalOcean will return a DigitalOcean LookerUpper
+// with the ability to lookup droplets by tag with the do
+// oauth2 api
 func NewDigitalOcean(token string) (d DigitalOcean, err error) {
 	if token == "" {
 		err = fmt.Errorf("Missing digitalocean token- have you set $DO_TOKEN?")
@@ -44,6 +49,8 @@ func NewDigitalOcean(token string) (d DigitalOcean, err error) {
 	return
 }
 
+// Addresses will return an HBP of all droplets with
+// the specified tag set
 func (do DigitalOcean) Addresses(tag string) (a HostBinaryMap) {
 	droplets, _, _ := do.lookupService.ListByTag(context.TODO(), tag, nil)
 

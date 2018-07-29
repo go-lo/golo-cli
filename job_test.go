@@ -103,7 +103,7 @@ func TestJob_Upload(t *testing.T) {
 		}
 	}()
 
-	err := j.Upload(hbm, s, h, e)
+	err := j.upload(hbm, s, h, e)
 	if err != nil {
 		t.Errorf("unexpected error %+v", err)
 	}
