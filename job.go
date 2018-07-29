@@ -50,7 +50,7 @@ func (j *Job) Queue(h chan HostBinary, errors chan error, size int) (err error) 
 }
 
 func (j *Job) Upload(hbm HostBinaryMap, schedule string, h chan HostBinary, errors chan error) (err error) {
-	for addr, _ := range hbm {
+	for addr := range hbm {
 		go func(a string) {
 			a = a
 
