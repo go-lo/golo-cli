@@ -4,25 +4,32 @@ import (
 	"log"
 )
 
+// Job represents a job request to make against an agent when
+// running uploading and queueing operations.
+//
+// It is, by and large, a cutdown copy of the Job in
+// github.com/go-lo/agent job.go
 type Job struct {
-	Name     string `json:"name",toml:"name"`
-	Users    int    `json:"users",toml:"users"`
-	Duration int64  `json:"duration",toml:"duration",`
+	Name     string `json:"name" toml:"name"`
+	Users    int    `json:"users" toml:"users"`
+	Duration int64  `json:"duration" toml:"duration"`
 	Binary   string `json:"binary"`
 }
 
+// UploadAndQueue will take a HostBinarMap and a schedule binary
+// and wrap j.queue and j.upload
 func (j *Job) UploadAndQueue(hbm HostBinaryMap, schedule string) (err error) {
 	hostBinaries := make(chan HostBinary, len(hbm))
 	errors := make(chan error, len(hbm))
 
 	log.Println("Updating agents")
-	err = j.Upload(hbm, schedule, hostBinaries, errors)
+	err = j.upload(hbm, schedule, hostBinaries, errors)
 	if err != nil {
 		return
 	}
 
 	log.Println("Queueing job")
-	err = j.Queue(hostBinaries, errors, len(hbm))
+	err = j.queue(hostBinaries, errors, len(hbm))
 	if err != nil {
 		return
 	}
@@ -30,7 +37,7 @@ func (j *Job) UploadAndQueue(hbm HostBinaryMap, schedule string) (err error) {
 	return
 }
 
-func (j *Job) Queue(h chan HostBinary, errors chan error, size int) (err error) {
+func (j *Job) queue(h chan HostBinary, errors chan error, size int) (err error) {
 	for i := 0; i < size; i++ {
 		hb := <-h
 
@@ -49,11 +56,9 @@ func (j *Job) Queue(h chan HostBinary, errors chan error, size int) (err error) 
 	return
 }
 
-func (j *Job) Upload(hbm HostBinaryMap, schedule string, h chan HostBinary, errors chan error) (err error) {
-	for addr, _ := range hbm {
+func (j *Job) upload(hbm HostBinaryMap, schedule string, h chan HostBinary, errors chan error) (err error) {
+	for addr := range hbm {
 		go func(a string) {
-			a = a
-
 			log.Printf("%s - Starting Upload", a)
 			hb, err := UploadSchedule(schedule, a)
 

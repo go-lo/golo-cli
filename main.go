@@ -15,7 +15,7 @@ var (
 	cloudProvider = flag.String("provider", "localhost", "Cloud Provider to query for agents")
 	agentTag      = flag.String("agent-tag", "agent", "Tag value to query to find agents")
 	schedule      = flag.String("schedule", "./schedule", "Schedule to upload")
-	file          = flag.String("f", "config.yaml", "Config file to load")
+	file          = flag.String("f", "config.toml", "Config file to load")
 
 	m = sync.Mutex{}
 )

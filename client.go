@@ -28,6 +28,8 @@ type uploadResponse struct {
 	Binary string `json:"binary"`
 }
 
+// QueueJob takes a HostBinary and uses it to queue a job
+// against an agent
 func QueueJob(hb HostBinary, job Job) (err error) {
 	if hb.Host == "" {
 		err = fmt.Errorf("Missing hostname")
@@ -57,6 +59,8 @@ func QueueJob(hb HostBinary, job Job) (err error) {
 	return
 }
 
+// UploadSchedule sends a schedule binary to an agent and returns
+// a HostBinary of that host and binary combo
 func UploadSchedule(f, addr string) (hb HostBinary, err error) {
 	if addr == "" {
 		err = fmt.Errorf("Missing hostname")
