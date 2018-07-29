@@ -5,9 +5,9 @@ import (
 )
 
 type Job struct {
-	Name     string `json:"name",toml:"name"`
-	Users    int    `json:"users",toml:"users"`
-	Duration int64  `json:"duration",toml:"duration",`
+	Name     string `json:"name" toml:"name"`
+	Users    int    `json:"users" toml:"users"`
+	Duration int64  `json:"duration" toml:"duration"`
 	Binary   string `json:"binary"`
 }
 
