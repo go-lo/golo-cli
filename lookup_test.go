@@ -59,6 +59,9 @@ func TestSetLookerUpper(t *testing.T) {
 		{"localhost", "localhost", make(map[string]string), "main.Localhost", false},
 		{"digital ocean, correct env var", "digitalocean", map[string]string{"DO_TOKEN": "foo"}, "main.DigitalOcean", false},
 		{"digital ocean, missing env var", "digitalocean", make(map[string]string), "main.DigitalOcean", true},
+		{"env, correct var", "env", map[string]string{"GOLO_HOSTS": "example.com"}, "main.Env", false},
+		{"env, missing env var", "env", make(map[string]string), "main.Env", true},
+
 		{"No such provider", "non-such", make(map[string]string), "", true},
 		{"emptyprovider", "", make(map[string]string), "", true},
 	} {
