@@ -45,6 +45,11 @@ func SetLookerUpper(provider string) (lu LookerUpper, err error) {
 
 		lu, err = NewDigitalOcean(t)
 
+	case "env":
+		t := os.Getenv("GOLO_HOSTS")
+
+		lu, err = NewEnv(t)
+
 	default:
 		err = fmt.Errorf("No provider %q configured", *cloudProvider)
 	}
