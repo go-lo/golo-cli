@@ -76,6 +76,8 @@ Currently this software supports the following providers
 |--------------|-----------------------------------------------------|-----------------------------------------------------------------------|
 | localhost    | None                                                | Returns `localhost` and nothing else                                  |
 | digitalocean | env var `$DO_TOKEN` containing a valid do API token | Will return 0 or more addresses for droplets containing specified tag |
+| env          | `$GOLO_HOSTS` csv of hostnames of agents to use     | Returns the contents of `$GOLO_HOSTS` split on the comma              |
+
 
 Providers are simple to write; a provider needs to implement
 
